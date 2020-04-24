@@ -10,14 +10,14 @@ HLT = 0b00000001  # HLT: halt the CPU and exit the emulator.
 
 # day 2
 MUL = 0b10100010
-
 ADD = 0b10100000
-JNE = 0b01010110
+
 
 # sprint
 JEQ = 0b01010101
 CMP = 0b10100111
 JMP = 0b01010100
+JNE = 0b01010110
 
 # stack pointer
 SP = 7
@@ -46,14 +46,14 @@ class CPU:
         # branch table
         self.branch_table = {
             ADD: self.op_add,
-            CMP: self.op_cmp,
+            MUL: self.op_mul,
+            LDI: self.op_ldi,
             HLT: self.op_hlt,
+            PRN: self.op_prn,
             JEQ: self.op_jeq,
             JMP: self.op_jmp,
             JNE: self.op_jne,
-            LDI: self.op_ldi,
-            MUL: self.op_mul,
-            PRN: self.op_prn,
+            CMP: self.op_cmp,
         }
 
     # day 1 should accept the address to read and return the value stored there. The MAR contains the address that is being read or written to. MAR = address = location
@@ -71,7 +71,7 @@ class CPU:
         """Load a program into memory."""
 
         try:
-            with open(sys.argv[1]) as f:
+            with open(file) as f:
 
                 address = 0
                 for line in f:
@@ -160,6 +160,7 @@ class CPU:
     def op_prn(self, operand_a, operand_b):
         print(self.reg[operand_a])
 
+    # Set the value of a register to an integer.
     def op_ldi(self, operand_a, operand_b):
         self.reg[operand_a] = operand_b
 
@@ -169,20 +170,24 @@ class CPU:
     def op_mul(self, operand_a, operand_b):
         self.alu("MUL", operand_a, operand_b)
 
+    # Jump to the address stored in the given register. Set the PC to the address stored in the given register.
     def op_jmp(self, operand_a, operand_b):
         self.pc = self.reg[operand_a]
 
+    # If equal flag is set (true), jump to the address stored in the given register.
     def op_jeq(self, operand_a, operand_b):
         if self.fl == 1:
             self.pc = self.reg[operand_a]
         else:
             self.should_advance = False
 
+    # If E flag is clear (false, 0), jump to the address stored in the given register.
     def op_jne(self, operand_a, operand_b):
         if not self.fl == 1:
             self.pc = self.reg[operand_a]
         else:
             self.should_advance = False
+    # Compare the values in two registers. call logic from ALU
 
     def op_cmp(self, operand_a, operand_b):
         self.alu("CMP", operand_a, operand_b)
